@@ -1,8 +1,10 @@
 class Player
   attr_accessor :direction
+  attr_reader :full_health
 
   def play_turn(warrior)
     @w = warrior
+    @full_health ||= @w.health
 
     return rest_until_strong! if need_rest?
 
@@ -14,6 +16,7 @@ class Player
     else walk!
     end
   ensure
+    @previous_health = @w.health
     @space = nil
     @w = nil
   end
@@ -21,19 +24,25 @@ class Player
   def rest_until_strong!
     return walk_backwards! if took_damage?
     @w.rest!
-    @resting = @w.health < 20
+    @resting = hurt?
   end
 
   def need_rest?
-    !took_damage? && !feel.enemy? && (@resting || @w.health < 20)
+    !attack_time? && !feel.enemy? && (@resting || @w.health < full_health)
   end
 
   def took_damage?
-    @health ||= @w.health
+    @previous_health ||= full_health
 
-    @w.health < @health
-  ensure
-    @health = @w.health
+    @w.health < @previous_health
+  end
+
+  def hurt?
+    @w.health < full_health
+  end
+
+  def attack_time?
+    took_damage? && @previous_health == full_health
   end
 
   def direction
@@ -58,7 +67,7 @@ class Player
   end
 
   def attack!
-     @w.attack!(direction)
+    @w.attack!(direction)
   end
 
   def walk!
