@@ -8,7 +8,7 @@ class Player
 
     return rest_until_strong! if need_rest?
 
-    turn_around if feel.wall?
+    return if feel.wall? && pivot_if_necessary!
 
     case
     when feel.captive? then rescue!
@@ -46,13 +46,9 @@ class Player
   end
 
   def direction
-    @direction ||= :backward
+    @direction ||= :forward
   end
 
-  def turn_around
-    @direction = backwards_direction
-    @space = nil
-  end
 
   def backwards_direction
     (direction == :forward) ? :backward : :forward
@@ -72,6 +68,16 @@ class Player
 
   def walk!
     @w.walk!(direction)
+  end
+
+  def pivot_if_necessary!
+    if direction == :forward
+      @w.pivot!(:backward)
+      true
+    else
+      direction = backwards_direction
+      false
+    end
   end
 
   def walk_backwards!
