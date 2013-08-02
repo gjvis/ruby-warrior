@@ -10,6 +10,8 @@ class Player
 
     return if feel.wall? && pivot_if_necessary!
 
+    return shoot! if enemy_in_site?
+
     case
     when feel.captive? then rescue!
     when feel.enemy? then attack!
@@ -19,6 +21,11 @@ class Player
     @previous_health = @w.health
     @space = nil
     @w = nil
+  end
+
+  def enemy_in_site?
+    in_front_of_me = @w.look(direction).select { |s| !s.empty? }.first
+    in_front_of_me && in_front_of_me.enemy?
   end
 
   def rest_until_strong!
@@ -68,6 +75,10 @@ class Player
 
   def walk!
     @w.walk!(direction)
+  end
+
+  def shoot!
+    @w.shoot!(direction)
   end
 
   def pivot_if_necessary!
